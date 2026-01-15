@@ -20,3 +20,10 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+
+grpc:
+  client:
+    validator-client:
+      address: static://localhost:50051
+      negotiation-type: plaintext
