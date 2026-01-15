@@ -1,8 +1,8 @@
 package com.midzuhara.roadmapos.graph.service;
 
-import com.midzuhara.roadmapos.graph.entity.dto.CreateNodeRequest;
-import com.midzuhara.roadmapos.graph.entity.dto.NodeDto;
-import com.midzuhara.roadmapos.graph.entity.dto.UpdatePositionRequest;
+import com.midzuhara.roadmapos.graph.dto.CreateNodeRequest;
+import com.midzuhara.roadmapos.graph.dto.NodeDto;
+import com.midzuhara.roadmapos.graph.dto.UpdatePositionRequest;
 
 public interface GraphService {
 
