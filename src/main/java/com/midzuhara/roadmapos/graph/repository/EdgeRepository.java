@@ -10,4 +10,8 @@ public interface EdgeRepository extends JpaRepository<Edge, Long> {
     boolean existsBySourceNodeIdAndTargetNodeId(Long sourceNodeId, Long targetNodeId);
 
     List<Edge> findAllByRoadmapId(Long roadmapId);
+
+    List<Edge> findAllBySourceNodeId(Long sourceNodeId);
+
+    List<Edge> findAllByTargetNodeId(Long targetNodeId);
 }
