@@ -1,0 +1,22 @@
+spring:
+
+  application:
+    name: RoadmapOS
+
+  datasource:
+    password: 6666
+    username: midzuhara
+    url: jdbc:postgresql://localhost:5434/roadmapOs-db
+    driver-class-name: org.postgresql.Driver
+
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    open-in-view: false
+
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
