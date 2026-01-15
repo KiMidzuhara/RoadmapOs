@@ -3,9 +3,9 @@ package com.midzuhara.roadmapos.graph.mapper;
 import com.midzuhara.roadmapos.graph.entity.Edge;
 import com.midzuhara.roadmapos.graph.entity.Node;
 import com.midzuhara.roadmapos.graph.entity.Roadmap;
-import com.midzuhara.roadmapos.graph.entity.dto.EdgeDto;
-import com.midzuhara.roadmapos.graph.entity.dto.NodeDto;
-import com.midzuhara.roadmapos.graph.entity.dto.RoadmapResponseDto;
+import com.midzuhara.roadmapos.graph.dto.EdgeDto;
+import com.midzuhara.roadmapos.graph.dto.NodeDto;
+import com.midzuhara.roadmapos.graph.dto.RoadmapResponseDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
