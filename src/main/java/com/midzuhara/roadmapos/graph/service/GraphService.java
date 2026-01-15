@@ -1,8 +1,6 @@
 package com.midzuhara.roadmapos.graph.service;
 
-import com.midzuhara.roadmapos.graph.dto.CreateNodeRequest;
-import com.midzuhara.roadmapos.graph.dto.NodeDto;
-import com.midzuhara.roadmapos.graph.dto.UpdatePositionRequest;
+import com.midzuhara.roadmapos.graph.dto.*;
 
 public interface GraphService {
 
@@ -11,4 +9,8 @@ public interface GraphService {
     NodeDto updateNodePosition(Long nodeId, UpdatePositionRequest request);
 
     void deleteNode(Long nodeId);
+
+    EdgeDto createEdge(Long roadmapId, CreateEdgeRequest request);
+
+    void deleteEdge(Long edgeId);
 }
