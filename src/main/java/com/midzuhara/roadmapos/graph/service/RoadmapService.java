@@ -2,6 +2,7 @@ package com.midzuhara.roadmapos.graph.service;
 
 import com.midzuhara.roadmapos.graph.entity.dto.CreateRoadmapRequest;
 import com.midzuhara.roadmapos.graph.entity.dto.RoadmapResponseDto;
+import com.midzuhara.roadmapos.graph.entity.dto.UpdateRoadmapRequest;
 import com.midzuhara.roadmapos.graph.exception.RoadmapNotFoundException;
 
 import java.util.List;
@@ -29,4 +30,21 @@ public interface RoadmapService {
      * В MVP можно возвращать полный объект, но в будущем лучше сделать упрощенный DTO.
      */
     List<RoadmapResponseDto> getAll();
+
+    /**
+     * Обновляет карту по ID.
+     * @param id - ID карты
+     * @param request - новые данные (название, описание)
+     * @return обновленная карта
+     * @throws RoadmapNotFoundException если карта не найдена
+     */
+    RoadmapResponseDto update(Long id, UpdateRoadmapRequest request);
+
+    /**
+     * Удаляет карту по ID.
+     * @param id - ID карты
+     * @throws RoadmapNotFoundException если карта не найдена
+     */
+    void delete(Long id);
+
 }
