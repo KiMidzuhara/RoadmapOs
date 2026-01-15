@@ -1,10 +1,9 @@
 package com.midzuhara.roadmapos.graph.service.serviceImpl;
 
+import com.midzuhara.roadmapos.graph.dto.*;
+import com.midzuhara.roadmapos.graph.entity.Edge;
 import com.midzuhara.roadmapos.graph.entity.Node;
 import com.midzuhara.roadmapos.graph.entity.Roadmap;
-import com.midzuhara.roadmapos.graph.dto.CreateNodeRequest;
-import com.midzuhara.roadmapos.graph.dto.NodeDto;
-import com.midzuhara.roadmapos.graph.dto.UpdatePositionRequest;
 import com.midzuhara.roadmapos.graph.exception.NodeNotFoundException;
 import com.midzuhara.roadmapos.graph.exception.RoadmapNotFoundException;
 import com.midzuhara.roadmapos.graph.mapper.RoadmapMapper;
@@ -12,10 +11,12 @@ import com.midzuhara.roadmapos.graph.repository.EdgeRepository;
 import com.midzuhara.roadmapos.graph.repository.NodeRepository;
 import com.midzuhara.roadmapos.graph.repository.RoadmapRepository;
 import com.midzuhara.roadmapos.graph.service.GraphService;
+import com.midzuhara.roadmapos.graph.service.grpc.GrpcValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +27,7 @@ public class GraphEditorService implements GraphService {
     private final NodeRepository nodeRepository;
     private final EdgeRepository edgeRepository;
     private final RoadmapMapper roadmapMapper;
+    private final GrpcValidationService grpcValidationService;
 
     @Override
     @Transactional
@@ -60,5 +62,55 @@ public class GraphEditorService implements GraphService {
             throw new NodeNotFoundException("Node not found with ID: " + nodeId);
         }
         nodeRepository.deleteById(nodeId);
+    }
+
+    @Override
+    @Transactional
+    public EdgeDto createEdge(Long roadmapId, CreateEdgeRequest request) {
+        Long sourceId = request.sourceNodeId();
+        Long targetId = request.targetNodeId();
+
+        if (sourceId.equals(targetId)){
+            throw new IllegalArgumentException("Self-loops are not allowed");
+        }
+
+        Node source = nodeRepository.findById(sourceId)
+                .orElseThrow(() -> new NodeNotFoundException("Source node not found: " + sourceId));
+        Node target = nodeRepository.findById(targetId)
+                .orElseThrow(() -> new NodeNotFoundException("Target node not found: " + targetId));
+
+        if (!source.getRoadmap().getId().equals(roadmapId) || !target.getRoadmap().getId().equals(roadmapId)) {
+            throw new IllegalArgumentException("Nodes do not belong to roadmap: " + roadmapId);
+        }
+
+        if (edgeRepository.existsBySourceNodeIdAndTargetNodeId(sourceId, targetId)) {
+            throw new IllegalArgumentException("Edge already exists");
+        }
+
+        List<Edge> currentEdges = edgeRepository.findAllByRoadmapId(roadmapId);
+
+        boolean isValid = grpcValidationService.validateGraphCycle(currentEdges, sourceId, targetId);
+        if (!isValid) {
+            throw new IllegalArgumentException("Cycle detected! This edge creates an infinite loop.");
+        }
+
+        Edge edge = Edge.builder()
+                .roadmap(source.getRoadmap())
+                .sourceNode(source)
+                .targetNode(target)
+                .build();
+        Edge savedEdge = edgeRepository.save(edge);
+        log.info("Edge created: {} -> {}", sourceId, targetId);
+        return roadmapMapper.toEdgeDto(savedEdge);
+    }
+
+    @Override
+    @Transactional
+    public void deleteEdge(Long edgeId) {
+        if (!edgeRepository.existsById(edgeId)) {
+            throw new IllegalArgumentException("Edge not found with ID: " + edgeId);
+        }
+        edgeRepository.deleteById(edgeId);
+        log.info("Edge deleted: {}", edgeId);
     }
 }
