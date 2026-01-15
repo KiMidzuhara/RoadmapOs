@@ -75,7 +75,34 @@ public class GraphEditorService implements GraphService {
         if (!nodeRepository.existsById(nodeId)) {
             throw new NodeNotFoundException("Node not found with ID: " + nodeId);
         }
+
+        List<Node> children = edgeRepository
+                .findAllBySourceNodeId(nodeId)
+                .stream()
+                .map(Edge::getTargetNode)
+                .toList();
+        // Удаляем все ребра, входящие в этот узел
+        edgeRepository.deleteAll(edgeRepository.findAllByTargetNodeId(nodeId));
+        // Удаляем все ребра, исходящие из этого узла
+        edgeRepository.deleteAll(edgeRepository.findAllBySourceNodeId(nodeId));
+        // Удаляем узел
         nodeRepository.deleteById(nodeId);
+
+        for (var child : children) {
+
+            if (child.getStatus() == Status.LOCKED) {
+                List<Edge> remainingParents = edgeRepository.findAllByTargetNodeId(child.getId());
+                boolean allParentsCompleted = remainingParents.isEmpty() ||
+                        remainingParents.stream()
+                                .map(Edge::getSourceNode)
+                                .allMatch(parent -> parent.getStatus() == Status.COMPLETED);
+                if (allParentsCompleted) {
+                    child.setStatus(Status.AVAILABLE);
+                    nodeRepository.save(child);
+                    log.info("Node {} unlocked because all parents completed", child.getId());
+                }
+            }
+        }
     }
 
     @Override
