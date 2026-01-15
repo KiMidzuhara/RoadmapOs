@@ -8,9 +8,13 @@ public interface GraphService {
 
     NodeDto updateNodePosition(Long nodeId, UpdatePositionRequest request);
 
+    void batchUpdateNodePositions(BatchUpdatePositionRequest request);
+
     void deleteNode(Long nodeId);
 
     EdgeDto createEdge(Long roadmapId, CreateEdgeRequest request);
 
     void deleteEdge(Long edgeId);
+
+    NodeDto updateNode(Long nodeId, UpdateNodeRequest request);
 }

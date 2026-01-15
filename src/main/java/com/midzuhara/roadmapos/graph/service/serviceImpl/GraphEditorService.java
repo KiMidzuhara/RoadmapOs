@@ -4,6 +4,7 @@ import com.midzuhara.roadmapos.graph.dto.*;
 import com.midzuhara.roadmapos.graph.entity.Edge;
 import com.midzuhara.roadmapos.graph.entity.Node;
 import com.midzuhara.roadmapos.graph.entity.Roadmap;
+import com.midzuhara.roadmapos.graph.entity.Status;
 import com.midzuhara.roadmapos.graph.exception.NodeNotFoundException;
 import com.midzuhara.roadmapos.graph.exception.RoadmapNotFoundException;
 import com.midzuhara.roadmapos.graph.mapper.RoadmapMapper;
@@ -28,6 +29,7 @@ public class GraphEditorService implements GraphService {
     private final EdgeRepository edgeRepository;
     private final RoadmapMapper roadmapMapper;
     private final GrpcValidationService grpcValidationService;
+    private final NodeStatusService nodeStatusService;
 
     @Override
     @Transactional
@@ -39,6 +41,7 @@ public class GraphEditorService implements GraphService {
                 .positionX(request.x())
                 .positionY(request.y())
                 .roadmap(roadmap)
+                .status(Status.AVAILABLE)
                 .build();
         Node savedNode = nodeRepository.save(node);
         return roadmapMapper.toNodeDto(savedNode);
@@ -53,6 +56,17 @@ public class GraphEditorService implements GraphService {
         node.setPositionY(request.y());
         Node updatedNode = nodeRepository.save(node);
         return roadmapMapper.toNodeDto(updatedNode);
+    }
+
+    @Override
+    @Transactional
+    public void batchUpdateNodePositions(BatchUpdatePositionRequest request){
+        for (var update : request.updates()) {
+            nodeRepository.findById(update.nodeId()).ifPresent(node -> {
+                node.setPositionX(update.x());
+                node.setPositionY(update.y());
+            });
+        }
     }
 
     @Override
@@ -87,6 +101,10 @@ public class GraphEditorService implements GraphService {
             throw new IllegalArgumentException("Edge already exists");
         }
 
+        if (target.getStatus() == Status.COMPLETED) {
+            throw new IllegalArgumentException("Cannot add dependency to a COMPLETED node");
+        }
+
         List<Edge> currentEdges = edgeRepository.findAllByRoadmapId(roadmapId);
 
         boolean isValid = grpcValidationService.validateGraphCycle(currentEdges, sourceId, targetId);
@@ -100,7 +118,15 @@ public class GraphEditorService implements GraphService {
                 .targetNode(target)
                 .build();
         Edge savedEdge = edgeRepository.save(edge);
-        log.info("Edge created: {} -> {}", sourceId, targetId);
+
+        if (target.getStatus() == Status.AVAILABLE) {
+            if (source.getStatus() != Status.COMPLETED) {
+                target.setStatus(Status.LOCKED);
+                nodeRepository.save(target);
+                log.info("Node {} locked because new dependency {} added", target.getId(), source.getId());
+            }
+        }
+       log.info("Edge created: {} -> {}", sourceId, targetId);
         return roadmapMapper.toEdgeDto(savedEdge);
     }
 
@@ -112,5 +138,26 @@ public class GraphEditorService implements GraphService {
         }
         edgeRepository.deleteById(edgeId);
         log.info("Edge deleted: {}", edgeId);
+    }
+
+    @Override
+    @Transactional
+    public NodeDto updateNode(Long nodeId, UpdateNodeRequest request) {
+
+        Node node = nodeRepository.findById(nodeId)
+                .orElseThrow(() -> new NodeNotFoundException("Node not found with ID: " + nodeId));
+
+        if (request.title() != null && !request.title().isBlank()){
+            node.setTitle(request.title());
+        }
+
+        if (request.status() != null) {
+            Status newStatus = Status.valueOf(request.status());
+            if (node.getStatus() != newStatus) {
+                nodeStatusService.changeNodeStatus(node, newStatus);
+            }
+        }
+        log.info("Node updated: {}", node.getId());
+        return roadmapMapper.toNodeDto(nodeRepository.save(node));
     }
 }
