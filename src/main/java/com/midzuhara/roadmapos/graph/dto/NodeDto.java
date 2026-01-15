@@ -1,4 +1,4 @@
-package com.midzuhara.roadmapos.graph.entity.dto;
+package com.midzuhara.roadmapos.graph.dto;
 
 public record NodeDto(
         Long id,
