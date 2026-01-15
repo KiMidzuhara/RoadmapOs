@@ -1,9 +1,9 @@
 package com.midzuhara.roadmapos.graph.service.serviceImpl;
 
 import com.midzuhara.roadmapos.graph.entity.Roadmap;
-import com.midzuhara.roadmapos.graph.entity.dto.CreateRoadmapRequest;
-import com.midzuhara.roadmapos.graph.entity.dto.RoadmapResponseDto;
-import com.midzuhara.roadmapos.graph.entity.dto.UpdateRoadmapRequest;
+import com.midzuhara.roadmapos.graph.dto.CreateRoadmapRequest;
+import com.midzuhara.roadmapos.graph.dto.RoadmapResponseDto;
+import com.midzuhara.roadmapos.graph.dto.UpdateRoadmapRequest;
 import com.midzuhara.roadmapos.graph.exception.RoadmapNotFoundException;
 import com.midzuhara.roadmapos.graph.mapper.RoadmapMapper;
 import com.midzuhara.roadmapos.graph.repository.RoadmapRepository;
