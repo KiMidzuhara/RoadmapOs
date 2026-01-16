@@ -22,7 +22,6 @@ public class RoadmapController {
     @PostMapping
     public ResponseEntity<RoadmapResponseDto> create(@RequestBody @Valid CreateRoadmapRequest request) {
         RoadmapResponseDto created = roadmapService.create(request);
-        // Возвращаем 201 Created вместо 200 OK
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -44,7 +43,7 @@ public class RoadmapController {
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT) // 204 No Content - тело ответа пустое
+    @ResponseStatus(HttpStatus.NO_CONTENT) // 204 No Content
     public void delete(@PathVariable Long id) {
         roadmapService.delete(id);
     }
