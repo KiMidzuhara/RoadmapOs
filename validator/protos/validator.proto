@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package com.midzuhara.roadmapos.grpc;
+
+option java_multiple_files = true;
+option java_package = "com.midzuhara.roadmapos.grpc";
+
+
+service GraphValidatorService {
+    rpc ValidateGraph (GraphRequest) returns (ValidationResponse);
+}
+
+
+message GraphRequest {
+    repeated EdgePair edges = 1;
+}
+
+message EdgePair {
+    int64 source_id = 1;
+    int64 target_id = 2;
+}
+
+message ValidationResponse {
+    bool is_valid = 1;
+    string error_message = 2;
+}

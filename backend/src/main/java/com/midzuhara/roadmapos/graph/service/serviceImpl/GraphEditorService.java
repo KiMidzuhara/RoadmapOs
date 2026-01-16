@@ -76,10 +76,10 @@ public class GraphEditorService implements GraphService {
             throw new NodeNotFoundException("Node not found with ID: " + nodeId);
         }
 
-        List<Node> children = edgeRepository
+        List<Long> childrenIds = edgeRepository
                 .findAllBySourceNodeId(nodeId)
                 .stream()
-                .map(Edge::getTargetNode)
+                .map(e -> e.getTargetNode().getId())
                 .toList();
         // Удаляем все ребра, входящие в этот узел
         edgeRepository.deleteAll(edgeRepository.findAllByTargetNodeId(nodeId));
@@ -88,20 +88,21 @@ public class GraphEditorService implements GraphService {
         // Удаляем узел
         nodeRepository.deleteById(nodeId);
 
-        for (var child : children) {
-
-            if (child.getStatus() == Status.LOCKED) {
-                List<Edge> remainingParents = edgeRepository.findAllByTargetNodeId(child.getId());
-                boolean allParentsCompleted = remainingParents.isEmpty() ||
-                        remainingParents.stream()
-                                .map(Edge::getSourceNode)
-                                .allMatch(parent -> parent.getStatus() == Status.COMPLETED);
-                if (allParentsCompleted) {
-                    child.setStatus(Status.AVAILABLE);
-                    nodeRepository.save(child);
-                    log.info("Node {} unlocked because all parents completed", child.getId());
+        for (var childId : childrenIds) {
+            nodeRepository.findById(childId).ifPresent(child -> {
+                if (child.getStatus() == Status.LOCKED){
+                    boolean allParentsCompleted = edgeRepository
+                            .findAllByTargetNodeId(child.getId())
+                            .stream()
+                            .map(Edge::getSourceNode)
+                            .allMatch(parent -> parent.getStatus() == Status.COMPLETED);
+                    if (allParentsCompleted) {
+                        child.setStatus(Status.AVAILABLE);
+                        nodeRepository.save(child);
+                        log.info("Node {} unlocked because all parents completed", child.getId());
+                    }
                 }
-            }
+            });
         }
     }
 
@@ -185,6 +186,6 @@ public class GraphEditorService implements GraphService {
             }
         }
         log.info("Node updated: {}", node.getId());
-        return roadmapMapper.toNodeDto(nodeRepository.save(node));
+        return roadmapMapper.toNodeDto(node);
     }
 }

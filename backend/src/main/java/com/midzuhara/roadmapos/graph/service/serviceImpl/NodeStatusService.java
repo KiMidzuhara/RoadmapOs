@@ -25,6 +25,9 @@ public class NodeStatusService {
 
     @Transactional
     public void changeNodeStatus(Node node, Status newStatus) {
+
+        validateTransition(node.getStatus(), newStatus);
+
         if (newStatus == Status.AVAILABLE || newStatus == Status.COMPLETED) {
             checkParentsCompleted(node);
         }
@@ -33,6 +36,14 @@ public class NodeStatusService {
         if (newStatus == Status.COMPLETED) {
             tryUnlockChildren(node);
         }
+    }
+
+    private void validateTransition(Status from, Status to) {
+        if (from == Status.LOCKED && to == Status.COMPLETED)
+            throw new IllegalStateException("Cannot complete locked node");
+
+        if (from == Status.COMPLETED)
+            throw new IllegalStateException("Completed node cannot change state");
     }
 
     private void checkParentsCompleted(Node node){
