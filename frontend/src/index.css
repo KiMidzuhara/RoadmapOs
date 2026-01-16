@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-background text-slate-800 antialiased;
+    }
+}
+
+/* Стили для React Flow (чтобы граф был на весь экран) */
+html, body, #root {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* Кастомные анимации для графа */
+.react-flow__edge-path {
+    stroke-width: 2;
+    stroke: #cbd5e1;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+    stroke: #3b82f6;
+}
+
+.react-flow__controls {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+    border-radius: 8px !important;
+    border: none !important;
+}
