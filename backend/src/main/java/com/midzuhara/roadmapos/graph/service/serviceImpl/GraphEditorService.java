@@ -160,10 +160,32 @@ public class GraphEditorService implements GraphService {
     @Override
     @Transactional
     public void deleteEdge(Long edgeId) {
-        if (!edgeRepository.existsById(edgeId)) {
-            throw new IllegalArgumentException("Edge not found with ID: " + edgeId);
+        Edge edge = edgeRepository.findById(edgeId)
+                .orElseThrow(() -> new IllegalArgumentException("Edge not found with ID: " + edgeId));
+
+        Node targetNode = edge.getTargetNode();
+        // Удаляем связь
+        edgeRepository.delete(edge);
+
+        edgeRepository.flush();
+
+        if (targetNode.getStatus() == Status.LOCKED) {
+            // Ищем оставшихся родителей
+            List<Edge> remainingParents = edgeRepository.findAllByTargetNodeId(targetNode.getId());
+
+            // Если родителей нет ИЛИ все оставшиеся родители COMPLETED
+            boolean allParentsCompleted = remainingParents.isEmpty() ||
+                    remainingParents.stream()
+                            .map(Edge::getSourceNode)
+                            .allMatch(p -> p.getStatus() == Status.COMPLETED);
+
+            if (allParentsCompleted) {
+                targetNode.setStatus(Status.AVAILABLE);
+                nodeRepository.save(targetNode); // Тут save нужен, чтобы обновить статус
+                log.info("Node {} unlocked because dependency removed", targetNode.getId());
+            }
         }
-        edgeRepository.deleteById(edgeId);
+
         log.info("Edge deleted: {}", edgeId);
     }
 
