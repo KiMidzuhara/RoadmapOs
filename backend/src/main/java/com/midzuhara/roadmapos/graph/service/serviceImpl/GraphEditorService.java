@@ -105,7 +105,6 @@ public class GraphEditorService implements GraphService {
             });
         }
     }
-
     @Override
     @Transactional
     public EdgeDto createEdge(Long roadmapId, CreateEdgeRequest request) {
