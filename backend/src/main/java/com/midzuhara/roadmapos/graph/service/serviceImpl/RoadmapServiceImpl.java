@@ -22,7 +22,6 @@ public class RoadmapServiceImpl implements RoadmapService {
     private final RoadmapRepository roadmapRepository;
     private final RoadmapMapper roadmapMapper;
 
-
     @Override
     @Transactional
     public RoadmapResponseDto create(CreateRoadmapRequest request) {
